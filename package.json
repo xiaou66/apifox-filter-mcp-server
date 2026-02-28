@@ -1,0 +1,57 @@
+{
+  "name": "apifox-filter-mcp-server",
+  "version": "1.0.9",
+  "description": "Apifox Filter MCP Server - 根据 URL 精准过滤 API 文档",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "bin": {
+    "apifox-filter-mcp-server": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build",
+    "release": "npm publish --access public"
+  },
+  "keywords": [
+    "mcp",
+    "apifox",
+    "api",
+    "openapi",
+    "swagger",
+    "claude",
+    "anthropic"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xiaou66/apifox-filter-mcp-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/xiaou66/apifox-filter-mcp-server/issues"
+  },
+  "homepage": "https://github.com/xiaou66/apifox-filter-mcp-server#readme",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "undici": "^6.0.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
