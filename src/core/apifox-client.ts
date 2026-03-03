@@ -1,5 +1,5 @@
 import { request } from 'undici';
-import type { ApifoxExportRequest, OpenApiSpec } from '../types/index.js';
+import type { ApifoxExportRequest, OpenApiSpec } from '../types';
 import { logger } from '../utils/logger.js';
 
 const APIFOX_API_BASE = process.env.APIFOX_API_BASE || 'https://api.apifox.com';

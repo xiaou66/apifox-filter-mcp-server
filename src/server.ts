@@ -128,6 +128,36 @@ export class ApifoxFilterServer {
       }
     );
 
+    // 按文件夹列出接口工具
+    this.server.registerTool(
+      'list_api_by_folder',
+      {
+        title: '按文件夹列出接口',
+        description: '按 Apifox 文件夹路径筛选接口列表，支持精确和模糊匹配',
+        inputSchema: {
+          folder: z.string().describe('文件夹路径或关键词，如 "用户管理" 或 "用户管理/登录注册"'),
+        },
+      },
+      async ({ folder }) => {
+        await this.ensureIndexLoaded();
+        return this.handleListApiByFolder({ folder });
+      }
+    );
+
+    // 列出所有文件夹工具
+    this.server.registerTool(
+      'list_api_folders',
+      {
+        title: '列出所有文件夹',
+        description: '列出所有 Apifox 接口文件夹目录结构',
+        inputSchema: {},
+      },
+      async () => {
+        await this.ensureIndexLoaded();
+        return this.handleListApiFolders();
+      }
+    );
+
     // 批量获取接口工具
     this.server.registerTool(
       'batch_get_apis',
@@ -364,6 +394,7 @@ export class ApifoxFilterServer {
   private handleListAllEndpoints() {
     const all = this.indexManager.getAll();
     const tags = this.indexManager.getAllTags();
+    const folders = this.indexManager.getAllFolders();
     return {
       content: [
         {
@@ -371,12 +402,45 @@ export class ApifoxFilterServer {
           text: JSON.stringify({
             totalCount: all.length,
             tags,
+            folders,
             endpoints: all.map(e => ({
               path: e.path,
               method: e.method,
               name: e.name,
               tags: e.tags,
+              folder: e.folder,
             })),
+          }),
+        },
+      ],
+    };
+  }
+
+  private handleListApiByFolder(args: { folder: string }) {
+    const results = this.indexManager.getByFolder(args.folder);
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: JSON.stringify({
+            folder: args.folder,
+            count: results.length,
+            endpoints: results,
+          }),
+        },
+      ],
+    };
+  }
+
+  private handleListApiFolders() {
+    const folders = this.indexManager.getAllFolders();
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: JSON.stringify({
+            count: folders.length,
+            folders,
           }),
         },
       ],

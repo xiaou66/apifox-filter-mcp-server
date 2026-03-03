@@ -5,9 +5,8 @@ import type {
   HttpMethod,
   Parameter,
   JsonSchema,
-} from '../types/index.js';
-import { urlMatcher } from '../utils/url-matcher.js';
-import { logger } from '../utils/logger.js';
+} from '../types';
+import { urlMatcher, logger } from '../utils';
 
 // 解析后的 Schema 类型，包含原始引用信息
 interface ResolvedSchema extends JsonSchema {
@@ -18,6 +17,7 @@ interface EndpointIndex {
   byPath: Map<string, ApiEndpointSummary[]>;
   byTag: Map<string, ApiEndpointSummary[]>;
   byMethod: Map<HttpMethod, ApiEndpointSummary[]>;
+  byFolder: Map<string, ApiEndpointSummary[]>;
   all: ApiEndpointSummary[];
 }
 
@@ -26,6 +26,7 @@ export class IndexManager {
     byPath: new Map(),
     byTag: new Map(),
     byMethod: new Map(),
+    byFolder: new Map(),
     all: [],
   };
   private openApiSpec: OpenApiSpec | null = null;
@@ -39,6 +40,7 @@ export class IndexManager {
       byPath: new Map(),
       byTag: new Map(),
       byMethod: new Map(),
+      byFolder: new Map(),
       all: [],
     };
 
@@ -49,6 +51,7 @@ export class IndexManager {
       for (const [method, operation] of Object.entries(methods)) {
         if (['get', 'post', 'put', 'delete', 'patch', 'head', 'options'].includes(method.toLowerCase())) {
           const httpMethod = method.toUpperCase() as HttpMethod;
+          const folder = operation['x-apifox-folder'] as string | undefined;
           const endpoint: ApiEndpointSummary = {
             id: `endpoint_${++idCounter}`,
             path,
@@ -56,6 +59,7 @@ export class IndexManager {
             name: operation.summary || operation.operationId || `${httpMethod} ${path}`,
             tags: operation.tags || [],
             description: operation.description,
+            folder,
           };
 
           // 添加到全量列表
@@ -81,6 +85,14 @@ export class IndexManager {
             this.index.byMethod.set(httpMethod, []);
           }
           this.index.byMethod.get(httpMethod)!.push(endpoint);
+
+          // 按文件夹索引
+          if (folder) {
+            if (!this.index.byFolder.has(folder)) {
+              this.index.byFolder.set(folder, []);
+            }
+            this.index.byFolder.get(folder)!.push(endpoint);
+          }
         }
       }
     }
@@ -113,6 +125,32 @@ export class IndexManager {
   }
 
   /**
+   * 按文件夹获取接口列表
+   */
+  getByFolder(folder: string): ApiEndpointSummary[] {
+    // 精确匹配
+    const exact = this.index.byFolder.get(folder);
+    if (exact && exact.length > 0) return exact;
+
+    // 模糊匹配：查找包含关键词的文件夹
+    const folderLower = folder.toLowerCase();
+    const results: ApiEndpointSummary[] = [];
+    for (const [key, endpoints] of this.index.byFolder) {
+      if (key.toLowerCase().includes(folderLower)) {
+        results.push(...endpoints);
+      }
+    }
+    return results;
+  }
+
+  /**
+   * 获取所有文件夹
+   */
+  getAllFolders(): string[] {
+    return Array.from(this.index.byFolder.keys());
+  }
+
+  /**
    * 获取所有路径
    */
   getAllPaths(): string[] {
@@ -133,13 +171,13 @@ export class IndexManager {
     if (!this.openApiSpec) return [];
 
     const normalizedPath = urlMatcher.normalizePath(path);
-    const pathData = this.openApiSpec.paths[path] || 
-                      this.openApiSpec.paths[normalizedPath];
-    
+    const pathData = this.openApiSpec.paths[path] ||
+      this.openApiSpec.paths[normalizedPath];
+
     if (!pathData) {
       // 尝试模糊匹配
       const allPaths = Object.keys(this.openApiSpec.paths);
-      const matchedPath = allPaths.find(p => 
+      const matchedPath = allPaths.find(p =>
         urlMatcher.match(normalizedPath, p) || urlMatcher.match(p, normalizedPath)
       );
       if (!matchedPath) return [];
@@ -147,7 +185,7 @@ export class IndexManager {
     }
 
     const results: ApiEndpointDetail[] = [];
-    const methods = method 
+    const methods = method
       ? { [method.toLowerCase()]: pathData[method.toLowerCase()] }
       : pathData;
 
@@ -156,7 +194,7 @@ export class IndexManager {
       if (!operation) continue;
 
       const httpMethod = m.toUpperCase() as HttpMethod;
-      
+
       // 解析参数
       const parameters: ApiEndpointDetail['parameters'] = {
         path: [],
@@ -235,6 +273,7 @@ export class IndexManager {
         name: operation.summary || operation.operationId || `${httpMethod} ${path}`,
         tags: operation.tags || [],
         description: operation.description,
+        folder: operation['x-apifox-folder'] as string | undefined,
         parameters,
         requestBody,
         responses,
@@ -359,6 +398,7 @@ export class IndexManager {
     const nameLower = (endpoint.name || '').toLowerCase();
     const descLower = (endpoint.description || '').toLowerCase();
     const tagsLower = endpoint.tags.map(t => t.toLowerCase());
+    const folderLower = (endpoint.folder || '').toLowerCase();
 
     for (const keyword of keywords) {
       const keywordLower = keyword.toLowerCase();
@@ -373,6 +413,12 @@ export class IndexManager {
       if (nameLower.includes(keywordLower)) {
         score += 8;
         reasons.push(`名称匹配: ${keyword}`);
+      }
+
+      // 文件夹匹配
+      if (folderLower && folderLower.includes(keywordLower)) {
+        score += 7;
+        reasons.push(`文件夹匹配: ${keyword}`);
       }
 
       // 标签匹配

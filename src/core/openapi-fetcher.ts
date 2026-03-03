@@ -1,8 +1,8 @@
 import { request } from 'undici';
 import { createHash } from 'node:crypto';
 import { promises as fsp } from 'node:fs';
-import type { ApifoxExportRequest, OpenApiSpec, ServerConfig } from '../types/index.js';
-import { logger } from '../utils/logger.js';
+import type { ApifoxExportRequest, OpenApiSpec, ServerConfig } from '../types';
+import { logger } from '../utils';
 
 const APIFOX_API_BASE = process.env.APIFOX_API_BASE || 'https://api.apifox.com';
 const API_VERSION = '2024-03-28';
@@ -48,6 +48,11 @@ export class ApifoxFetcher implements OpenApiFetcher {
         const body: ApifoxExportRequest = {
             scope: {
                 type: 'ALL',
+            },
+            // 将文件夹名称注入到 tags 中，并包含 x-apifox-folder 扩展字段
+            options: {
+                addFoldersToTags: true,
+                includeApifoxExtensionProperties: true,
             },
             oasVersion: '3.0',
             exportFormat: 'JSON',

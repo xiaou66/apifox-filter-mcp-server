@@ -10,6 +10,7 @@
 
 - 🎯 **精准过滤** - 根据 URL 模式搜索接口，支持通配符和模糊匹配
 - 🧠 **智能搜索** - 支持自然语言查询，自动提取关键词并按相关度排序
+- 📁 **文件夹检索** - 支持按 Apifox 文件夹目录浏览和筛选接口
 - 📦 **按需获取** - 只获取需要的接口详情，最小化上下文占用
 - 🏷️ **标签筛选** - 支持按标签分类获取接口列表
 - ⚡ **智能缓存** - 本地 JSON 缓存，支持定时刷新和 Miss 时自动刷新
@@ -197,6 +198,28 @@
 > 设置 `PROJECT_DIR` 后，缓存文件会自动存放在 `${PROJECT_DIR}/.apifox-cache/` 目录下。
 > 建议将 `.apifox-cache` 添加到项目的 `.gitignore` 中。
 
+
+## Antigravity 配置
+
+```json
+{
+  "mcpServers": {
+    "apifox-filter": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "apifox-filter-mcp-server@latest",
+        "--project-id=<your-project-id>",
+      ],
+      "env": {
+        "APIFOX_ACCESS_TOKEN": "<your-access-token>",
+        "CACHE_DIR": "项目目录"
+      }
+    }
+  }
+}
+```
+
 ### 环境变量
 
 | 变量 | 说明 | 默认值 |
@@ -264,6 +287,7 @@
 | 路径直接匹配 | +15 |
 | 路径关键词匹配 | +10 |
 | 名称匹配 | +8 |
+| 文件夹匹配 | +7 |
 | 标签匹配 | +5 |
 | 描述匹配 | +3 |
 
@@ -287,13 +311,21 @@
 
 按标签筛选接口列表。
 
+### list_api_by_folder
+
+按 Apifox 文件夹路径筛选接口列表，支持精确和模糊匹配（仅 Apifox 模式）。
+
+### list_api_folders
+
+列出所有 Apifox 接口文件夹目录结构（仅 Apifox 模式）。
+
 ### batch_get_apis
 
 批量获取多个接口的详细信息。
 
 ### list_all_endpoints
 
-列出所有接口的路径和方法（仅返回摘要信息）。
+列出所有接口的路径、方法、标签和文件夹信息（仅返回摘要）。
 
 ### refresh_cache
 
@@ -347,6 +379,17 @@ get_api_detail path="/api/users/{id}" method="GET"
 
 ```
 list_api_by_tag tag="用户管理"
+```
+
+### 按文件夹获取接口
+
+```
+# 查看所有文件夹目录
+list_api_folders
+
+# 按文件夹筛选（支持模糊匹配）
+list_api_by_folder folder="用户管理"
+list_api_by_folder folder="用户管理/登录注册"
 ```
 
 ## 本地测试

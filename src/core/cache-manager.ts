@@ -1,6 +1,6 @@
 import { promises as fsp } from 'node:fs';
 import { join, resolve } from 'node:path';
-import type { CacheMeta, OpenApiSpec, RefreshConfig, JsonSchema, OpenApiOperation } from '../types/index.js';
+import type { CacheMeta, OpenApiSpec, RefreshConfig, JsonSchema, OpenApiOperation } from '../types';
 import { logger } from '../utils/logger.js';
 
 /**
