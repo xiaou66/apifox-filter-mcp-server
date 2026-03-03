@@ -199,7 +199,9 @@
 > 建议将 `.apifox-cache` 添加到项目的 `.gitignore` 中。
 
 
-## Antigravity 配置
+### Antigravity 配置
+
+> CACHE_DIR 必须配置，否则会报错在 Antigravity 环境中获取不到项目目录
 
 ```json
 {
