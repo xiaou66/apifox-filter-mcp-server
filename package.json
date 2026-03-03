@@ -1,6 +1,6 @@
 {
   "name": "apifox-filter-mcp-server",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Apifox Filter MCP Server - 根据 URL 精准过滤 API 文档",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
