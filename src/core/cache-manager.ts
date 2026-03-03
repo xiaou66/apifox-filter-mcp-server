@@ -1,5 +1,5 @@
 import { promises as fsp } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import type { CacheMeta, OpenApiSpec, RefreshConfig, JsonSchema, OpenApiOperation } from '../types/index.js';
 import { logger } from '../utils/logger.js';
 
@@ -79,10 +79,17 @@ export class CacheManager {
    */
   async init(): Promise<void> {
     try {
+      // 验证缓存目录路径有效性
+      const resolved = resolve(this.cacheDir);
+      if (!resolved || resolved === '/') {
+        throw new Error(`Invalid cache directory: "${this.cacheDir}" resolved to "${resolved}"`);
+      }
+      this.cacheDir = resolved;
+
       await fsp.mkdir(this.cacheDir, { recursive: true });
       logger.debug('Cache directory initialized', { cacheDir: this.cacheDir });
     } catch (error) {
-      logger.error('Failed to create cache directory', error);
+      logger.error(`Failed to create cache directory: ${this.cacheDir}`, error);
       throw error;
     }
   }

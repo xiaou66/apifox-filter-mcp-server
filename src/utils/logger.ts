@@ -36,19 +36,22 @@ class Logger {
 
   debug(message: string, ...args: unknown[]): void {
     if (this.shouldLog('debug')) {
-      console.debug(this.formatMessage('debug', message), ...args);
+      // 使用 console.error 输出到 stderr，避免污染 stdout（MCP 协议要求）
+      console.error(this.formatMessage('debug', message), ...args);
     }
   }
 
   info(message: string, ...args: unknown[]): void {
     if (this.shouldLog('info')) {
-      console.info(this.formatMessage('info', message), ...args);
+      // 使用 console.error 输出到 stderr，避免污染 stdout（MCP 协议要求）
+      console.error(this.formatMessage('info', message), ...args);
     }
   }
 
   warn(message: string, ...args: unknown[]): void {
     if (this.shouldLog('warn')) {
-      console.warn(this.formatMessage('warn', message), ...args);
+      // 使用 console.error 输出到 stderr，避免污染 stdout（MCP 协议要求）
+      console.error(this.formatMessage('warn', message), ...args);
     }
   }
 
